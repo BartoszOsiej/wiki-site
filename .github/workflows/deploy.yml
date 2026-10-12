@@ -1,0 +1,22 @@
+name: deploy-wiki
+on:
+  schedule: [{ cron: "17 * * * *" }]
+  workflow_dispatch:
+permissions: { contents: read }
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - run: npm install
+      - name: Fetch the GitHub Wiki (source of truth)
+        run: git clone --depth 1 https://github.com/BartoszOsiej/BartoszOsiej.wiki.git wiki-src
+      - name: Build static docs
+        run: node build.js ./wiki-src
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          command: deploy
