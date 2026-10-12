@@ -169,6 +169,7 @@ ${HEADER}
 </div></body></html>`);
   count++;
 }
+fs.writeFileSync(path.join(OUT, "_headers"), "/*\n  Cache-Control: no-store\n");
 fs.writeFileSync(path.join(OUT, "404.html"),
   `<!doctype html><meta charset="utf-8"><title>404 · Hartwell Labs Docs</title><body style="font-family:Inter,system-ui;background:#fff;color:#0f172a;padding:80px">
 <div style="max-width:560px;margin:auto"><h1 style="letter-spacing:-.02em">404</h1><p style="color:#475569">This documentation page doesn't exist.</p><a href="/" style="color:#4f46e5;font-weight:600">← Back to documentation</a></div></body>`);
