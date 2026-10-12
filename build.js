@@ -5,6 +5,38 @@ import path from "node:path";
 const SRC = process.argv[2] || "/tmp/opencode/wiki";
 const OUT = path.resolve("./dist");
 
+const GUIDE = [
+  ["quality-assurance", "Quality Assurance"],
+  ["research-and-development", "Research & Development"],
+  ["energy-research", "Energy Research"],
+  ["pdf-translator", "PDF Translator"],
+  ["tests", "Test Suites"],
+  ["update-flow", "Update Flow"],
+];
+const PRODUCTS = [
+  ["projects/talus-process-monitor", "Talus Process Monitor"],
+  ["projects/solana-validator", "TrustNode"],
+  ["projects/externum", "Externum"],
+  ["projects/cybersec-tools", "CyberForge"],
+  ["projects/pqbit", "PQBit"],
+  ["projects/nv2-engine", "VIVIA"],
+  ["projects/n2-mesh", "Meshcore"],
+  ["projects/aurora-os", "Aurora"],
+  ["projects/factorio-web-game", "Novactorio"],
+  ["projects/prompt-inbox", "Promptbox"],
+  ["projects/fastapi-url", "LinkShort"],
+  ["projects/pqguard", "PQGuard"],
+];
+const TITLES = { projects: "Projects" };
+for (const [s, t] of GUIDE) TITLES[s] = t;
+for (const [s, t] of PRODUCTS) TITLES[s] = t;
+
+const cleanH1 = (s) =>
+  s
+    .replace(/^[\s#]+/, "")
+    .replace(/^(?:[\p{Extended_Pictographic}\u{1F000}-\u{1FAFF}\u2600-\u27BF\uFE0F\u200D\u2122\u2120]+\s*)+/u, "")
+    .trim();
+
 function walk(dir, base = dir) {
   let out = [];
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -17,7 +49,7 @@ function walk(dir, base = dir) {
 
 function normTarget(href, pageDir) {
   if (/^(https?:|mailto:|#|data:)/.test(href)) return null;
-  let h = href.replace(/\.md$/i, "").replace(/^\/docs\//, "/").replace(/^docs\//, "");
+  const h = href.replace(/\.md$/i, "").replace(/^\/docs\//, "/").replace(/^docs\//, "");
   if (h === "Home" || h === "home" || h === "") return "/";
   if (h.startsWith("/")) return h.endsWith("/") ? h : h + "/";
   const joined = path.posix.normalize(path.posix.join(pageDir, h)).toLowerCase().replace(/\/$/, "");
@@ -33,8 +65,7 @@ marked.use({
       let href = token.href;
       const t = normTarget(href, currentDir);
       if (t) href = t;
-      const inner = this.parser.parseInline(token.tokens);
-      return `<a href="${href}">${inner}</a>`;
+      return `<a href="${href}">${this.parser.parseInline(token.tokens)}</a>`;
     },
   },
 });
@@ -44,9 +75,13 @@ const render = (md, dir) => {
 };
 
 const pages = walk(SRC).filter((p) => !path.basename(p).startsWith("_"));
-const sidebar = fs.existsSync(path.join(SRC, "_Sidebar.md"))
-  ? render(fs.readFileSync(path.join(SRC, "_Sidebar.md"), "utf8"), "")
-  : "";
+
+const SIDEBAR = `<h2>Documentation</h2>
+<ul><li><a href="/">Overview</a></li><li><a href="/projects/">Projects</a></li></ul>
+<h3>Guides</h3>
+<ul>${GUIDE.map(([s, t]) => `<li><a href="/${s}/">${t}</a></li>`).join("")}</ul>
+<h3>Products</h3>
+<ul>${PRODUCTS.map(([s, t]) => `<li><a href="/${s}/">${t}</a></li>`).join("")}</ul>`;
 
 const HEX = `<svg width="22" height="22" viewBox="0 0 46 46" aria-hidden="true"><path d="M23,2 L42,13 L42,33 L23,44 L4,33 L4,13 Z" fill="none" stroke="#4f46e5" stroke-width="3.4" stroke-linejoin="round"/><polyline points="13,26 19,26 22,17 26,29 29,24 33,24" fill="none" stroke="#4f46e5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
@@ -64,7 +99,7 @@ nav.main a:hover,nav.main a[aria-current]{color:var(--txt)}
 .header-cta{display:inline-flex;align-items:center;height:36px;padding:0 16px;border-radius:8px;background:var(--txt);color:#fff;font-size:13.5px;font-weight:600;text-decoration:none}
 .header-cta:hover{background:#1e293b}
 .layout{display:flex;align-items:flex-start}
-.side{width:272px;flex:0 0 272px;position:sticky;top:64px;height:calc(100vh - 64px);overflow:auto;padding:30px 22px 60px 0;border-right:1px solid var(--border);font-size:14px}
+.side{width:280px;flex:0 0 280px;position:sticky;top:64px;height:calc(100vh - 64px);overflow:auto;padding:30px 22px 60px 0;border-right:1px solid var(--border);font-size:14px}
 .side ul{list-style:none;padding:0;margin:6px 0}
 .side li{margin:2px 0}
 .side a{color:var(--txt-2);text-decoration:none}
@@ -87,7 +122,6 @@ nav.main a:hover,nav.main a[aria-current]{color:var(--txt)}
 .md ul,.md ol{padding-left:1.3em}
 footer.site{margin-top:56px;border-top:1px solid var(--border);padding-top:18px;color:var(--txt-3);font-size:13.5px}
 footer.site a{color:var(--txt-2)}
-.side .md p{color:var(--txt-3);font-size:13px}
 @media(max-width:900px){nav.main{display:none}.layout{flex-direction:column}.side{position:relative;top:0;height:auto;width:100%;flex:none;border-right:0;border-bottom:1px solid var(--border);padding:20px 0}.doc{padding:24px 0;max-width:none}}
 `;
 
@@ -103,17 +137,19 @@ const HEADER = `<header><div class="container header-in">
 <a class="header-cta" href="https://github.com/Hartwell-Labs">GitHub ↗</a>
 </div></header>`;
 
-const FOOTER = `<footer class="site">Rendered from the <a href="https://github.com/BartoszOsiej/BartoszOsiej/wiki">GitHub Wiki</a> · served on <code>wiki.hartwell-labs.pl</code> · <a href="https://hartwell-labs.pl">hartwell-labs.pl ↗</a></footer>`;
+const FOOTER = `<footer class="site">© Hartwell Labs — independent engineering company, Szczecin, Poland · <a href="https://hartwell-labs.pl">hartwell-labs.pl ↗</a></footer>`;
 
 fs.rmSync(OUT, { recursive: true, force: true });
 let count = 0;
 for (const rel of pages) {
   const page = rel.replace(/\.md$/i, "");
-  const pageDir = path.posix.dirname(page) === "." ? "" : path.posix.dirname(page).toLowerCase();
-  const md = fs.readFileSync(path.join(SRC, rel), "utf8");
-  const title = (md.match(/^#\s+(.+)$/m)?.[1] || page.split("/").pop()).replace(/[*_`]/g, "");
+  const key = page.toLowerCase();
+  const pageDir = path.posix.dirname(key) === "." ? "" : path.posix.dirname(key);
+  let md = fs.readFileSync(path.join(SRC, rel), "utf8");
+  let title = TITLES[key] || cleanH1(md.match(/^#\s+(.+)$/m)?.[1] || page.split("/").pop());
+  if (TITLES[key]) md = md.replace(/^#\s+.*$/m, "# " + TITLES[key]);
   const body = render(md, pageDir);
-  const url = page.toLowerCase() === "home" ? "" : page.toLowerCase() + "/";
+  const url = key === "home" ? "" : key + "/";
   const dest = path.join(OUT, url, "index.html");
   fs.mkdirSync(path.dirname(dest), { recursive: true });
   fs.writeFileSync(dest, `<!doctype html>
@@ -128,12 +164,12 @@ for (const rel of pages) {
 <style>${CSS}</style></head><body>
 ${HEADER}
 <div class="container layout">
-<aside class="side md">${sidebar}</aside>
+<aside class="side">${SIDEBAR}</aside>
 <main class="doc"><article class="md">${body}</article>${FOOTER}</main>
 </div></body></html>`);
   count++;
 }
 fs.writeFileSync(path.join(OUT, "404.html"),
   `<!doctype html><meta charset="utf-8"><title>404 · Hartwell Labs Docs</title><body style="font-family:Inter,system-ui;background:#fff;color:#0f172a;padding:80px">
-<div style="max-width:560px;margin:auto"><h1 style="letter-spacing:-.02em">404</h1><p style="color:#475569">This documentation page doesn't exist.</p><a href="/" style="color:#4f46e5;font-weight:600">← Back to docs</a></div></body>`);
+<div style="max-width:560px;margin:auto"><h1 style="letter-spacing:-.02em">404</h1><p style="color:#475569">This documentation page doesn't exist.</p><a href="/" style="color:#4f46e5;font-weight:600">← Back to documentation</a></div></body>`);
 console.log("built", count, "pages ->", OUT);
