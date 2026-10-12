@@ -20,11 +20,9 @@ function normTarget(href, pageDir) {
   let h = href.replace(/\.md$/i, "").replace(/^\/docs\//, "/").replace(/^docs\//, "");
   if (h === "Home" || h === "home" || h === "") return "/";
   if (h.startsWith("/")) return h.endsWith("/") ? h : h + "/";
-  let joined = path.posix.normalize(path.posix.join(pageDir, h)).toLowerCase().replace(/\/$/, "");
+  const joined = path.posix.normalize(path.posix.join(pageDir, h)).toLowerCase().replace(/\/$/, "");
   return "/" + joined + "/";
 }
-
-const pages = walk(SRC).filter((p) => !path.basename(p).startsWith("_"));
 
 let currentDir = "";
 marked.use({
@@ -40,16 +38,72 @@ marked.use({
     },
   },
 });
-
-function render(md, pageDir) {
-  currentDir = pageDir;
+const render = (md, dir) => {
+  currentDir = dir;
   return marked.parse(md);
-}
+};
 
-const sidebarMd = fs.existsSync(path.join(SRC, "_Sidebar.md"))
-  ? fs.readFileSync(path.join(SRC, "_Sidebar.md"), "utf8")
+const pages = walk(SRC).filter((p) => !path.basename(p).startsWith("_"));
+const sidebar = fs.existsSync(path.join(SRC, "_Sidebar.md"))
+  ? render(fs.readFileSync(path.join(SRC, "_Sidebar.md"), "utf8"), "")
   : "";
-const sidebar = render(sidebarMd, "");
+
+const HEX = `<svg width="22" height="22" viewBox="0 0 46 46" aria-hidden="true"><path d="M23,2 L42,13 L42,33 L23,44 L4,33 L4,13 Z" fill="none" stroke="#4f46e5" stroke-width="3.4" stroke-linejoin="round"/><polyline points="13,26 19,26 22,17 26,29 29,24 33,24" fill="none" stroke="#4f46e5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+const CSS = `
+:root{--bg:#fff;--bg-subtle:#f8fafc;--border:#e2e8f0;--txt:#0f172a;--txt-2:#475569;--txt-3:#94a3b8;--accent:#4f46e5;--accent-hover:#4338ca;--accent-soft:#eef2ff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:"Inter",-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.65}
+.container{max-width:1080px;margin:0 auto;padding:0 24px}
+header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.88);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.header-in{display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{display:flex;align-items:center;gap:9px;font-weight:700;font-size:16px;text-decoration:none;color:var(--txt)}
+nav.main{display:flex;gap:26px}
+nav.main a{font-size:14px;color:var(--txt-2);text-decoration:none;font-weight:500}
+nav.main a:hover,nav.main a[aria-current]{color:var(--txt)}
+.header-cta{display:inline-flex;align-items:center;height:36px;padding:0 16px;border-radius:8px;background:var(--txt);color:#fff;font-size:13.5px;font-weight:600;text-decoration:none}
+.header-cta:hover{background:#1e293b}
+.layout{display:flex;align-items:flex-start}
+.side{width:272px;flex:0 0 272px;position:sticky;top:64px;height:calc(100vh - 64px);overflow:auto;padding:30px 22px 60px 0;border-right:1px solid var(--border);font-size:14px}
+.side ul{list-style:none;padding:0;margin:6px 0}
+.side li{margin:2px 0}
+.side a{color:var(--txt-2);text-decoration:none}
+.side a:hover{color:var(--accent)}
+.side h2,.side h3{font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--txt-3);margin:20px 0 6px;font-weight:600}
+.doc{flex:1;min-width:0;padding:40px 0 60px 46px;max-width:780px}
+.md h1{font-size:clamp(30px,4vw,40px);letter-spacing:-.02em;line-height:1.15;font-weight:700;margin:0 0 18px}
+.md h2{font-size:22px;letter-spacing:-.01em;margin:2em 0 .5em;font-weight:700;padding-bottom:.25em;border-bottom:1px solid var(--border)}
+.md h3{font-size:17px;margin:1.6em 0 .4em;font-weight:600}
+.md a{color:var(--accent);text-decoration:none}.md a:hover{text-decoration:underline}
+.md img{max-width:100%}.md p{margin:1em 0}
+.md code{font-family:"JetBrains Mono",monospace;font-size:.87em;background:var(--bg-subtle);border:1px solid var(--border);border-radius:5px;padding:.1em .4em}
+.md pre{background:#0f172a;color:#e2e8f0;border-radius:12px;padding:16px 18px;overflow:auto;font-size:13.5px;line-height:1.6}
+.md pre code{background:none;border:0;color:inherit;padding:0}
+.md table{border-collapse:collapse;width:100%;margin:1.2em 0;font-size:14.5px}
+.md th,.md td{border:1px solid var(--border);padding:8px 12px;text-align:left}
+.md th{background:var(--bg-subtle);font-weight:600}
+.md blockquote{border-left:3px solid var(--accent);background:var(--accent-soft);margin:1.2em 0;padding:.5em 1.1em;border-radius:0 8px 8px 0;color:var(--txt-2)}
+.md hr{border:0;border-top:1px solid var(--border);margin:2em 0}
+.md ul,.md ol{padding-left:1.3em}
+footer.site{margin-top:56px;border-top:1px solid var(--border);padding-top:18px;color:var(--txt-3);font-size:13.5px}
+footer.site a{color:var(--txt-2)}
+.side .md p{color:var(--txt-3);font-size:13px}
+@media(max-width:900px){nav.main{display:none}.layout{flex-direction:column}.side{position:relative;top:0;height:auto;width:100%;flex:none;border-right:0;border-bottom:1px solid var(--border);padding:20px 0}.doc{padding:24px 0;max-width:none}}
+`;
+
+const HEADER = `<header><div class="container header-in">
+<a class="logo" href="/">${HEX}Hartwell&nbsp;Labs</a>
+<nav class="main">
+<a href="https://hartwell-labs.pl/products">Products</a>
+<a href="https://hartwell-labs.pl/catalog">Catalog</a>
+<a href="/" aria-current="page">Docs</a>
+<a href="https://hartwell-labs.pl/security">Security</a>
+<a href="https://hartwell-labs.pl/company">Company</a>
+</nav>
+<a class="header-cta" href="https://github.com/Hartwell-Labs">GitHub ↗</a>
+</div></header>`;
+
+const FOOTER = `<footer class="site">Rendered from the <a href="https://github.com/BartoszOsiej/BartoszOsiej/wiki">GitHub Wiki</a> · served on <code>wiki.hartwell-labs.pl</code> · <a href="https://hartwell-labs.pl">hartwell-labs.pl ↗</a></footer>`;
 
 fs.rmSync(OUT, { recursive: true, force: true });
 let count = 0;
@@ -62,46 +116,24 @@ for (const rel of pages) {
   const url = page.toLowerCase() === "home" ? "" : page.toLowerCase() + "/";
   const dest = path.join(OUT, url, "index.html");
   fs.mkdirSync(path.dirname(dest), { recursive: true });
-  const html = `<!doctype html>
+  fs.writeFileSync(dest, `<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${title} · Hartwell Labs Docs</title>
 <meta name="description" content="Hartwell Labs engineering documentation">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<style>
-:root{--bg:#0b0e14;--panel:#111722;--bd:#1e2836;--fg:#d7dee8;--mut:#8896aa;--acc:#f5a623;--acc2:#3da9fc}
-*{box-sizing:border-box}body{margin:0;font:16px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--fg)}
-a{color:var(--acc2);text-decoration:none}a:hover{text-decoration:underline}
-.wrap{display:flex;min-height:100vh}
-aside{width:280px;flex:0 0 280px;background:var(--panel);border-right:1px solid var(--bd);padding:22px 18px;position:sticky;top:0;height:100vh;overflow:auto}
-aside h2{font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin:0 0 12px}
-aside h3{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin:22px 0 8px}
-aside ul{list-style:none;padding:0;margin:0}aside li{margin:3px 0}
-aside a{color:var(--fg);font-size:.9rem}
-main{flex:1;min-width:0;padding:38px 54px;max-width:980px}
-header.top{display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--bd);padding-bottom:14px;margin-bottom:26px}
-header.top .brand{font-weight:700;color:var(--acc)}
-header.top a.home{color:var(--mut);font-size:.9rem;margin-left:auto}
-.md h1{font-size:1.9rem;border-bottom:1px solid var(--bd);padding-bottom:.3em}
-.md h2{font-size:1.4rem;margin-top:1.6em}.md h3{font-size:1.15rem}
-.md img{max-width:100%}.md code{background:#0b1220;border:1px solid var(--bd);border-radius:5px;padding:.1em .4em;font-size:.88em}
-.md pre{background:#0b1220;border:1px solid var(--bd);border-radius:10px;padding:14px;overflow:auto}
-.md pre code{border:0;background:none;padding:0}
-.md table{border-collapse:collapse;width:100%;margin:1em 0}.md th,.md td{border:1px solid var(--bd);padding:8px 11px}
-.md th{background:var(--panel)}.md blockquote{border-left:3px solid var(--acc);margin:1em 0;padding:.2em 1em;color:var(--mut);background:var(--panel);border-radius:0 8px 8px 0}
-.md hr{border:0;border-top:1px solid var(--bd);margin:2em 0}
-footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--bd);color:var(--mut);font-size:.85rem}
-@media(max-width:820px){.wrap{flex-direction:column}aside{position:relative;height:auto;width:100%;flex:none}main{padding:22px}}
-</style></head><body><div class="wrap">
-<aside><h2>Hartwell Labs Docs</h2>${sidebar}</aside>
-<main><header class="top"><span class="brand">◈ Hartwell Labs</span><a class="home" href="https://hartwell-labs.pl">hartwell-labs.pl ↗</a></header>
-<article class="md">${body}</article>
-<footer>Rendered from the <a href="https://github.com/BartoszOsiej/BartoszOsiej/wiki">BartoszOsiej wiki</a> · served on <code>wiki.hartwell-labs.pl</code></footer>
-</main></div></body></html>`;
-  fs.writeFileSync(dest, html);
+<meta name="theme-color" content="#4f46e5">
+<link rel="icon" type="image/svg+xml" href="https://hartwell-labs.pl/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>${CSS}</style></head><body>
+${HEADER}
+<div class="container layout">
+<aside class="side md">${sidebar}</aside>
+<main class="doc"><article class="md">${body}</article>${FOOTER}</main>
+</div></body></html>`);
   count++;
 }
-// 404
 fs.writeFileSync(path.join(OUT, "404.html"),
-  `<!doctype html><meta charset="utf-8"><title>404</title><body style="background:#0b0e14;color:#d7dee8;font:16px system-ui;padding:60px"><h1>404</h1><p>This docs page doesn't exist. <a style="color:#3da9fc" href="/">Back to docs</a></p>`);
+  `<!doctype html><meta charset="utf-8"><title>404 · Hartwell Labs Docs</title><body style="font-family:Inter,system-ui;background:#fff;color:#0f172a;padding:80px">
+<div style="max-width:560px;margin:auto"><h1 style="letter-spacing:-.02em">404</h1><p style="color:#475569">This documentation page doesn't exist.</p><a href="/" style="color:#4f46e5;font-weight:600">← Back to docs</a></div></body>`);
 console.log("built", count, "pages ->", OUT);
