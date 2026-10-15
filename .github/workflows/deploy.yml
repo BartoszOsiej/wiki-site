@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: "20" }
+        with: { node-version: "22" }
       - run: npm install
       # wrangler-action@v3 woła `npx wrangler@4` i pada na "no YES option",
       # wiec instalujemy go lokalnie i wołamy wprost.
