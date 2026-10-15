@@ -11,14 +11,15 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "20" }
       - run: npm install
+      # wrangler-action@v3 woła `npx wrangler@4` i pada na "no YES option",
+      # wiec instalujemy go lokalnie i wołamy wprost.
+      - run: npm install --no-save wrangler@latest
       - name: Fetch the GitHub Wiki (source of truth)
         run: git clone --depth 1 https://github.com/BartoszOsiej/BartoszOsiej.wiki.git wiki-src
       - name: Build static docs
         run: node build.js ./wiki-src
-      # wrangler-action@v3 czyta token z ENV, nie z wejscia `apiToken`
-      - uses: cloudflare/wrangler-action@v3
-        with:
-          command: deploy
+      - name: Deploy to Cloudflare Workers
+        run: npx wrangler deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
