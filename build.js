@@ -22,6 +22,7 @@ const PRODUCTS = [
   ["projects/pqbit", "PQBit"],
   ["projects/nv2-engine", "VIVIA"],
   ["projects/n2-mesh", "Meshcore"],
+  ["projects/aurora-os", "Aurora"],
   ["projects/factorio-web-game", "Novactorio"],
   ["projects/prompt-inbox", "Promptbox"],
   ["projects/fastapi-url", "LinkShort"],
