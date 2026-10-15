@@ -15,8 +15,10 @@ jobs:
         run: git clone --depth 1 https://github.com/BartoszOsiej/BartoszOsiej.wiki.git wiki-src
       - name: Build static docs
         run: node build.js ./wiki-src
+      # wrangler-action@v3 czyta token z ENV, nie z wejscia `apiToken`
       - uses: cloudflare/wrangler-action@v3
         with:
-          apiToken: ${{ secrets.CF_API_TOKEN }}
-          accountId: ${{ secrets.CF_ACCOUNT_ID }}
           command: deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}

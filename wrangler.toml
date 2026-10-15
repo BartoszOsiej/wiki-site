@@ -1,11 +1,15 @@
 name = "hartwell-wiki"
 compatibility_date = "2026-10-01"
+account_id = "29ee063c29d9e8f27a8863fadcaa9073"
 
 [assets]
 directory = "./dist"
 html_handling = "auto-trailing-slash"
 not_found_handling = "404-page"
 
+# Trasy MUSZA być na najwyższym poziomie TOML — wcześniej były zagnieżdżone
+# w [assets], przez co wrangler je ignorował ("Unexpected fields found in
+# assets field: routes") i custom domain nie był redeployowany.
 routes = [
   { pattern = "wiki.hartwell-labs.pl", custom_domain = true }
 ]
