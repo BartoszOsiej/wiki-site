@@ -251,8 +251,8 @@ for (const rel of pages) {
     `${clean}\n${VISUAL(title)}`);
 
   index.push({ slug: page, title, url, mdUrl, md });
-  const desc_match = clean.match(/^$$(.*?)$$/s);
-  const description = desc_match ? desc_match[1].replace(/[\n\r]+/g, " ").trim().slice(0, 155) : "Hartwell Labs engineering documentation";
+  const descPara = clean.split(/\n\n|\n(?=[A-Z\d#])/m).find((l) => { const t = l.trim(); return t && !t.startsWith("#"); }) || "";
+  const description = descPara.replace(/^(```|\||>|-|\d+\.)\S*\s?/gm, "").replace(/[\n\r`]+/g, " ").trim().slice(0, 155) || "Hartwell Labs engineering documentation";
   fs.writeFileSync(dest, `<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -290,7 +290,6 @@ for (const [alias, target] of TALUS_ALIASES) {
   fs.mkdirSync(d, { recursive: true });
   fs.writeFileSync(path.join(d, "index.html"), ALIAS_HTML(target.endsWith("/") ? target : target + "/"));
 }
-TALUS_ALIASES.forEach(([a]) => { index.push({ slug: a, title: "Talus — " + a.split("/")[1], url: a + "/", mdUrl: "", md: "" }); });
 /* --- llms.txt / llms-full.txt ---------------------------------------- */
 const site = "https://wiki.hartwell-labs.pl";
 const abs = (u) => site + "/" + String(u).replace(/^\//, "");
