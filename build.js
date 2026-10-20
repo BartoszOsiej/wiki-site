@@ -82,7 +82,9 @@ const SIDEBAR = `<h2>Documentation</h2>
 <h3>Guides</h3>
 <ul>${GUIDE.map(([s, t]) => `<li><a href="/${s}/">${t}</a></li>`).join("")}</ul>
 <h3>Products</h3>
-<ul>${PRODUCTS.map(([s, t]) => `<li><a href="/${s}/">${t}</a></li>`).join("")}</ul>`;
+<ul>${PRODUCTS.map(([s, t]) => `<li><a href="/${s}/">${t}</a></li>`).join("")}</ul>
+<h3>Talus docs</h3>
+<ul><li><a href="/talus/quickstart/">Quickstart</a></li><li><a href="/talus/configuration/">Configuration</a></li><li><a href="/talus/api/">License API</a></li><li><a href="/talus/fleet/">Fleet & licensing</a></li><li><a href="/talus/troubleshooting/">Troubleshooting</a></li></ul>`;
 
 const HEX = `<svg width="22" height="22" viewBox="0 0 46 46" aria-hidden="true"><path d="M23,2 L42,13 L42,33 L23,44 L4,33 L4,13 Z" fill="none" stroke="#4f46e5" stroke-width="3.4" stroke-linejoin="round"/><polyline points="13,26 19,26 22,17 26,29 29,24 33,24" fill="none" stroke="#4f46e5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
@@ -201,6 +203,28 @@ Motyw jest **jasny**. Jedyny ciemny element to bloki kodu (\`#0f172a\` tło,
 
 const FOOTER = `<footer class="site">© Hartwell Labs — independent engineering company, Szczecin, Poland · <a href="https://hartwell-labs.pl">hartwell-labs.pl ↗</a></footer>`;
 
+/* Talus customer-facing docs are also reachable at the shorter /talus/* path so
+   marketing links and the product page's "Documentation" button resolve there.
+   These are soft redirects: a canonical link plus a zero-delay meta refresh —
+   enough for crawlers, instant for humans, no JavaScript dependency. */
+const TALUS_ALIASES = [
+  ["talus/quickstart", "projects/talus-process-monitor/quickstart/"],
+  ["talus/configuration", "projects/talus-process-monitor/configuration/"],
+  ["talus/api", "projects/talus-process-monitor/api/"],
+  ["talus/fleet", "projects/talus-process-monitor/fleet/"],
+  ["talus/troubleshooting", "projects/talus-process-monitor/troubleshooting/"],
+];
+const ALIAS_HTML = (target) => `<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="index, follow">
+<title>Talus — redirect</title>
+<link rel="canonical" href="${target}">
+<meta http-equiv="refresh" content="0; url=${target}">
+</head><body>
+<p>Redirecting… <a href="${target}">${target}</a></p>
+</body></html>`;
+
 fs.rmSync(OUT, { recursive: true, force: true });
 let count = 0;
 const index = [];
@@ -227,11 +251,25 @@ for (const rel of pages) {
     `${clean}\n${VISUAL(title)}`);
 
   index.push({ slug: page, title, url, mdUrl, md });
+  const desc_match = clean.match(/^$$(.*?)$$/s);
+  const description = desc_match ? desc_match[1].replace(/[\n\r]+/g, " ").trim().slice(0, 155) : "Hartwell Labs engineering documentation";
   fs.writeFileSync(dest, `<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="index, follow">
 <title>${title} · Hartwell Labs Docs</title>
-<meta name="description" content="Hartwell Labs engineering documentation">
+<meta name="description" content="${description}">
+<link rel="canonical" href="https://wiki.hartwell-labs.pl/${url}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Hartwell Labs">
+<meta property="og:title" content="${title}">
+<meta property="og:description" content="${description}">
+<meta property="og:url" content="https://wiki.hartwell-labs.pl/${url}">
+<meta property="og:image" content="https://hartwell-labs.pl/assets/og-cover.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${title}">
+<meta name="twitter:description" content="${description}">
+<meta name="twitter:image" content="https://hartwell-labs.pl/assets/og-cover.png">
 <meta name="theme-color" content="#4f46e5">
 <link rel="alternate" type="text/markdown" href="${mdUrl}">
 <link rel="icon" type="image/svg+xml" href="https://hartwell-labs.pl/assets/favicon.svg">
@@ -245,6 +283,14 @@ ${HEADER}
 </div></body></html>`);
   count++;
 }
+
+/* Talus short-path aliases (/talus/quickstart/… → /projects/talus-process-monitor/…) */
+for (const [alias, target] of TALUS_ALIASES) {
+  const d = path.join(OUT, alias);
+  fs.mkdirSync(d, { recursive: true });
+  fs.writeFileSync(path.join(d, "index.html"), ALIAS_HTML(target.endsWith("/") ? target : target + "/"));
+}
+TALUS_ALIASES.forEach(([a]) => { index.push({ slug: a, title: "Talus — " + a.split("/")[1], url: a + "/", mdUrl: "", md: "" }); });
 /* --- llms.txt / llms-full.txt ---------------------------------------- */
 const site = "https://wiki.hartwell-labs.pl";
 const abs = (u) => site + "/" + String(u).replace(/^\//, "");
