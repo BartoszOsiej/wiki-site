@@ -214,16 +214,16 @@ const TALUS_ALIASES = [
   ["talus/fleet", "projects/talus-process-monitor/fleet/"],
   ["talus/troubleshooting", "projects/talus-process-monitor/troubleshooting/"],
 ];
-const ALIAS_HTML = (target) => `<!doctype html>
+const ALIAS_HTML = (target) => { const href = "https://wiki.hartwell-labs.pl/" + target; return `<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="index, follow">
 <title>Talus — redirect</title>
-<link rel="canonical" href="${target}">
-<meta http-equiv="refresh" content="0; url=${target}">
+<link rel="canonical" href="${href}">
+<meta http-equiv="refresh" content="0; url=${href}">
 </head><body>
-<p>Redirecting… <a href="${target}">${target}</a></p>
-</body></html>`;
+<p>Redirecting… <a href="${href}">${href}</a></p>
+</body></html>`; };
 
 fs.rmSync(OUT, { recursive: true, force: true });
 let count = 0;
