@@ -173,7 +173,7 @@ function buildCrumbs(key) {
 const HEX = `<svg width="22" height="22" viewBox="0 0 46 46" aria-hidden="true"><path d="M23,2 L42,13 L42,33 L23,44 L4,33 L4,13 Z" fill="none" stroke="#4f46e5" stroke-width="3.4" stroke-linejoin="round"/><polyline points="13,26 19,26 22,17 26,29 29,24 33,24" fill="none" stroke="#4f46e5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 const CSS = `
-:root{--bg:#fff;--bg-subtle:#f8fafc;--border:#e2e8f0;--txt:#0f172a;--txt-2:#475569;--txt-3:#94a3b8;--accent:#4f46e5;--accent-hover:#4338ca;--accent-soft:#eef2ff}
+:root{--bg:#fff;--bg-subtle:#f8fafc;--border:#e2e8f0;--txt:#0f172a;--txt-2:#475569;--txt-3:#64748b;--accent:#4f46e5;--accent-hover:#4338ca;--accent-soft:#eef2ff}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--txt);font-family:"Inter",-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.65}
@@ -301,7 +301,7 @@ const VISUAL = (title) => `
 | \`--border\` | \`#e2e8f0\` | obramowania 1px |
 | \`--txt\` | \`#0f172a\` | tekst główny |
 | \`--txt-2\` | \`#475569\` | tekst drugorzędny (sidebar, stopka) |
-| \`--txt-3\` | \`#94a3b8\` | tekst trzeciorzędny (nagłówki grup w sidebarze) |
+| \`--txt-3\` | \`#64748b\` | tekst trzeciorzędny (nagłówki grup w sidebarze) |
 | \`--accent\` | \`#4f46e5\` | akcent: logo, linki, \`aria-current\` |
 | \`--accent-hover\` | \`#4338ca\` | akcent po najechaniu |
 | \`--accent-soft\` | \`#eef2ff\` | tło blockquote |
